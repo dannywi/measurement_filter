@@ -91,3 +91,38 @@ TEST(FILTER, AlphaBeta2) {
     EXPECT_NEAR(f.current_estimate(tm), t.estimate_exp, EPS);
   }
 }
+
+TEST(FILTER, AlphaBeta3) {
+  mf::filter_alpha_beta<double, uint8_t> f{0.2, 0.1};
+
+  constexpr uint8_t INTERVAL = 5;
+
+  struct test {
+    double new_val;
+    double estimate_exp;
+  };
+
+  // Test with accelerating object, see the slow adaptation
+  // clang-format off
+  std::vector<test> tests = {
+      {30221, 30244.2},
+      {30453, 30483.64},
+      {30906, 30762.7},
+      {30999, 31018.93},
+      {31368, 31295.7},
+      {31978, 31646.3},
+      {32526, 32069.6},
+      {33379, 32624.5},
+      {34698, 33407.6},
+      {36275, 34478.6},
+  };
+  // clang-format on
+
+  f.init(30000, 50);
+  uint8_t tm = 0;
+  for (auto t : tests) {
+    tm += INTERVAL;
+    f.update(t.new_val, tm);
+    EXPECT_NEAR(f.current_estimate(tm), t.estimate_exp, EPS);
+  }
+}
